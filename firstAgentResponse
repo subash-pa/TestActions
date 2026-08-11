@@ -1,0 +1,93 @@
+subash@subash-Asus:~/Documents/Test$ uv run firstAgent.py 
+After reviewing your SQL script, I have identified several areas for improvement, specifically regarding syntax standards, readability, and performance risks.
+
+### **Review Findings**
+
+1.  **Join Syntax (ANSI vs. Legacy):** You are using the "comma-separated" join syntax (Implicit Joins). While valid, this is considered outdated practice. It is prone to errors (like accidental Cartesian products) and separates the join logic from the filtering logic (`WHERE` clause).
+2.  **Ambiguous Column References:** You are selecting columns like `status` and `email` without specifying which table they belong to. If two tables share a column name (e.g., both `customer` and `account_info` have a `status` column), the query will fail with an "ambiguous column" error.
+3.  **Lack of Table Aliases:** Using full table names in the `WHERE` clause makes the query harder to read and maintain.
+4.  **Data Type/Boolean Consistency:** You are using `is_default = 1`. In Oracle, there is no built-in `BOOLEAN` data type for table columns; typically, `1` is used for a `NUMBER(1)` column. Ensure this matches your schema definition.
+
+---
+
+### **Suggested Optimization**
+
+I recommend rewriting this using **ANSI-92 Join syntax** (`INNER JOIN... ON`). This separates the relationship logic (how tables connect) from the business logic (how rows are filtered).
+
+#### **Modified Script**
+```sql
+SELECT 
+    c.first_name, 
+    c.last_name, 
+    c.email, 
+    a.street_address, 
+    a.city, 
+    p.provider, 
+    p.masked_card_number, 
+    c.status  -- Explicitly added 'c.' prefix assuming status belongs to customer
+FROM customer c
+INNER JOIN address a 
+    ON c.customer_id = a.customer_id
+INNER JOIN payment_info p 
+    ON c.customer_id = p.customer_id
+INNER JOIN account_info acc 
+    ON c.customer_id = acc.customer_id
+WHERE a.is_default = 1
+  AND p.is_default = 1
+  AND c.status = 'ACTIVE';
+```
+
+### **Key Improvements Made:**
+*   **Aliases:** Assigned short aliases (`c`, `a`, `p`, `acc`) to make the script concise.
+*   **Explicit Joins:** Used `INNER JOIN... ON`, which is the industry standard and makes the join logic immediately clear.
+*   **Qualified Columns:** Added prefixes (e.g., `c.status`) to all columns. This prevents "Ambiguous Column" errors and improves execution plan clarity for the Oracle optimizer.
+*   **Readability:** The structure now clearly shows that you are fetching active customers with their default address and default payment method.
+
+**Note:** Please verify if `status` belongs to the `customer` table or the `account_info` table and adjust the `c.` prefix accordingly.After reviewing your SQL script, I have identified several areas for improvement, specifically regarding syntax standards, readability, and performance risks.
+
+### **Review Findings**
+
+1.  **Join Syntax (ANSI vs. Legacy):** You are using the "comma-separated" join syntax (Implicit Joins). While valid, this is considered outdated practice. It is prone to errors (like accidental Cartesian products) and separates the join logic from the filtering logic (`WHERE` clause).
+2.  **Ambiguous Column References:** You are selecting columns like `status` and `email` without specifying which table they belong to. If two tables share a column name (e.g., both `customer` and `account_info` have a `status` column), the query will fail with an "ambiguous column" error.
+3.  **Lack of Table Aliases:** Using full table names in the `WHERE` clause makes the query harder to read and maintain.
+4.  **Data Type/Boolean Consistency:** You are using `is_default = 1`. In Oracle, there is no built-in `BOOLEAN` data type for table columns; typically, `1` is used for a `NUMBER(1)` column. Ensure this matches your schema definition.
+
+---
+
+### **Suggested Optimization**
+
+I recommend rewriting this using **ANSI-92 Join syntax** (`INNER JOIN... ON`). This separates the relationship logic (how tables connect) from the business logic (how rows are filtered).
+
+#### **Modified Script**
+#### **Modified Script**
+```sql
+SELECT 
+    c.first_name, 
+    c.last_name, 
+    c.email, 
+    a.street_address, 
+    a.city, 
+    p.provider, 
+    p.masked_card_number, 
+    c.status  -- Explicitly added 'c.' prefix assuming status belongs to customer
+FROM customer c
+INNER JOIN address a 
+    ON c.customer_id = a.customer_id
+INNER JOIN payment_info p 
+    ON c.customer_id = p.customer_id
+INNER JOIN account_info acc 
+    ON c.customer_id = acc.customer_id
+WHERE a.is_default = 1
+  AND p.is_default = 1
+  AND c.status = 'ACTIVE';
+```
+
+### **Key Improvements Made:**
+*   **Aliases:** Assigned short aliases (`c`, `a`, `p`, `acc`) to make the script concise.
+*   **Explicit Joins:** Used `INNER JOIN... ON`, which is the industry standard and makes the join logic immediately clear.
+*   **Qualified Columns:** Added prefixes (e.g., `c.status`) to all columns. This prevents "Ambiguous Column" errors and improves execution plan clarity for the Oracle optimizer.
+*   **Readability:** The structure now clearly shows that you are fetching active customers with their default address and default payment method.
+
+**Note:** Please verify if `status` belongs to the `customer` table or the `account_info` table and adjust the `c.` prefix accordingly.
+
+
